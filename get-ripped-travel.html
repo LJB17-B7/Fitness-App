@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Travel Ripped">
+<title>Travel Ripped</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #020817; --bg1: #0f172a; --bg2: #1e293b;
+    --border: #1e293b; --border2: #334155;
+    --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b; --text4: #475569;
+    --blue: #3b82f6; --blue-dim: rgba(59,130,246,.12);
+    --orange: #f97316; --green: #10b981; --purple: #a855f7;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, 'SF Pro Text', sans-serif; overflow: hidden; }
+  #root { display: flex; flex-direction: column; height: 100%; }
+  .header { padding: calc(var(--safe-top) + 16px) 20px 14px; border-bottom: 1px solid var(--bg1); flex-shrink: 0; background: var(--bg); }
+  .header-eyebrow { font-size: 11px; color: var(--orange); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 2px; }
+  .header-title { font-size: 26px; font-weight: 700; background: linear-gradient(135deg, #f1f5f9, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .header-sub { font-size: 12px; color: var(--text4); margin-top: 2px; }
+  .scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px 0; }
+  .bottom-nav { display: flex; background: rgba(2,8,23,.96); border-top: 1px solid var(--bg1); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding-bottom: var(--safe-bot); flex-shrink: 0; }
+  .nav-btn { flex: 1; border: none; background: transparent; padding: 10px 0 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .nav-icon { font-size: 22px; }
+  .nav-label { font-size: 10px; font-weight: 500; }
+  .card { background: var(--bg1); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+  .section-eyebrow { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text4); margin-bottom: 10px; }
+  .week-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .week-tab { flex: 1; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text3); padding: 9px 4px; cursor: pointer; text-align: center; }
+  .week-tab.active { border: 1.5px solid var(--orange); background: rgba(249,115,22,.1); color: #fb923c; }
+  .week-tab-num { font-size: 13px; font-weight: 600; }
+  .week-tab-theme { font-size: 10px; margin-top: 1px; }
+  .day-pills { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 12px; }
+  .day-pill { border: 1px solid var(--border); border-radius: 8px; padding: 7px 2px; text-align: center; cursor: pointer; background: transparent; }
+  .day-pill.active { border: 1.5px solid var(--orange); background: rgba(249,115,22,.1); }
+  .day-pill-name { font-size: 10px; font-weight: 600; color: var(--text2); }
+  .day-pill-focus { font-size: 8.5px; color: var(--text4); margin-top: 2px; line-height: 1.2; }
+  .day-pill.active .day-pill-name { color: #fb923c; }
+  .workout-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .workout-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .tag-badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .workout-note { font-size: 12px; color: var(--text3); line-height: 1.55; margin-bottom: 12px; }
+  .ex-table { width: 100%; border-collapse: collapse; }
+  .ex-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text4); font-weight: 500; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
+  .ex-table td { padding: 8px 6px 8px 0; border-bottom: 1px solid rgba(30,41,59,.6); vertical-align: top; }
+  .ex-table tr:last-child td { border-bottom: none; }
+  .ex-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .ex-sets { font-size: 13px; font-weight: 700; color: var(--orange); }
+  .ex-reps { font-size: 12px; color: var(--text2); }
+  .ex-note { font-size: 11px; color: var(--text4); line-height: 1.4; }
+  .rest-day { text-align: center; padding: 28px 0; color: var(--text4); font-size: 13px; }
+  .macro-rings { display: flex; justify-content: space-around; align-items: center; margin-bottom: 14px; }
+  .ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ring-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); font-weight: 500; }
+  .calorie-center { text-align: center; }
+  .calorie-num { font-size: 24px; font-weight: 700; color: var(--text); }
+  .calorie-sub { font-size: 10px; color: var(--text4); }
+  .macro-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .input-wrap label { font-size: 10px; color: var(--text4); display: block; margin-bottom: 4px; }
+  .input-wrap input { width: 100%; background: var(--bg2); border: 1px solid var(--border2); border-radius: 7px; color: var(--text); padding: 8px; font-size: 14px; outline: none; -webkit-appearance: none; text-align: center; }
+  .reset-btn { width: 100%; padding: 8px 0; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text4); font-size: 12px; cursor: pointer; margin-top: 4px; }
+  .meal-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+  .meal-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .meal-cals { font-size: 12px; color: var(--text4); }
+  .meal-time { font-size: 11px; color: var(--text4); margin-bottom: 8px; }
+  .meal-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-top: 1px solid var(--bg2); }
+  .meal-item { font-size: 12.5px; color: var(--text2); }
+  .meal-macros { font-size: 11px; color: var(--text4); flex-shrink: 0; }
+  .info-box { background: rgba(249,115,22,.07); border: 1px solid rgba(249,115,22,.2); border-radius: 10px; padding: 12px 14px; font-size: 12px; color: var(--text2); line-height: 1.7; margin-bottom: 12px; }
+  .progress-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .field-label { font-size: 10px; color: var(--text4); margin-bottom: 4px; }
+  .field-input { width: 100%; background: var(--bg2); border: 1px solid var(--border2); border-radius: 7px; color: var(--text); padding: 8px; font-size: 14px; outline: none; -webkit-appearance: none; }
+  .save-btn { width: 100%; padding: 10px 0; border-radius: 9px; border: none; background: var(--orange); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 4px; }
+  .log-entry { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .log-weight { font-size: 14px; font-weight: 700; color: var(--text); }
+  .log-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .log-date { font-size: 11px; color: var(--text4); text-align: right; }
+  .log-diff { font-size: 12px; font-weight: 700; text-align: right; margin-top: 2px; }
+  .empty-state { text-align: center; padding: 32px 0; color: var(--text4); font-size: 13px; }
+  .tip-box { background: rgba(16,185,129,.07); border: 1px solid rgba(16,185,129,.2); border-radius: 10px; padding: 10px 13px; font-size: 11.5px; color: var(--text2); line-height: 1.65; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="header">
+    <div class="header-eyebrow">Travel Edition · No Equipment</div>
+    <div class="header-title">Travel Ripped</div>
+    <div class="header-sub">Bodyweight · Fat loss · Anywhere</div>
+  </div>
+  <div class="scroll-area" id="scroll-area"></div>
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+</div>
+
+<script>
+const PROGRAM = {
+  1: { theme:"Foundation", sub:"Learn the movement patterns, find your rep ceiling, establish the habit. Rest 60–90s between sets.", days: {
+    Mon:{focus:"Push",tag:"Strength",note:"Chest, shoulders, and triceps. No bench needed — floor and your bodyweight only.",ex:[
+      ["Push-Ups","4","Max (aim 15+)","Full range, chest touches floor"],
+      ["Pike Push-Ups","3","10","Hips high, targets shoulders"],
+      ["Diamond Push-Ups","3","10","Hands close, elbows back — pure triceps"],
+      ["Wide Push-Ups","3","12","Hands wider than shoulders, chest emphasis"],
+      ["Tricep Dips (chair/bed)","3","15","Elbows back, not flared"],
+      ["Shoulder Taps","3","20","Plank position, slow and controlled"]
+    ]},
+    Tue:{focus:"Pull + Bi's",tag:"Strength",note:"Back and biceps using door frames, towels, or furniture. Get creative.",ex:[
+      ["Towel Row (door handle)","4","12","Loop towel on handle, lean back and row"],
+      ["Reverse Push-Ups (under table)","3","10","Lie under table, pull chest to edge"],
+      ["Doorframe Isometric Pull","3","30 sec","Grab frame, pull hard — static contraction"],
+      ["Towel Bicep Curl","3","12","Foot on towel ends, curl up"],
+      ["Superman Hold","3","20","Face down, lift chest and legs, hold 2s"],
+      ["Rear Delt Fly (towel)","3","15","Same as row but arms wider"]
+    ]},
+    Wed:{focus:"Cardio + Abs",tag:"Cardio",note:"Get your heart rate up in your room — no equipment, minimal noise.",ex:[
+      ["Jump Rope (invisible)","1","3 min","Or jog in place, high knees"],
+      ["Burpees","4","10","Full range — chest to floor, jump at top"],
+      ["Mountain Climbers","3","30 sec","Drive knees to chest, fast"],
+      ["Hollow Body Hold","3","30 sec","Lower back pressed to floor"],
+      ["Leg Raises","3","15","Slow down, don't let feet touch floor"],
+      ["Bicycle Crunches","3","20","Slow and controlled, full rotation"]
+    ]},
+    Thu:{focus:"Legs",tag:"Strength",note:"Legs get a full session — squats and single-leg work build serious mass and burn the most calories.",ex:[
+      ["Bodyweight Squat","4","20","Full depth, knees track toes"],
+      ["Reverse Lunges","3","12/leg","Step back, front knee stable"],
+      ["Glute Bridge","3","20","Drive hips up, squeeze at top"],
+      ["Wall Sit","3","45 sec","Thighs parallel to floor"],
+      ["Single-Leg Calf Raise","3","15/leg","Hold wall for balance"],
+      ["Jump Squats","3","10","Land soft, immediately drop back down"]
+    ]},
+    Fri:{focus:"Full Body",tag:"Strength",note:"Compound movements that hit everything. Finishing the week strong.",ex:[
+      ["Decline Push-Ups","3","12","Feet on bed/chair — upper chest and shoulders"],
+      ["Bulgarian Split Squat","3","10/leg","Rear foot elevated on bed"],
+      ["Pike Push-Up to Push-Up","3","8","Pike for shoulders, shift forward for chest"],
+      ["Squat to Lateral Raise (no weight)","3","15","Explosive squat, arms out at top"],
+      ["Plank to Downward Dog","3","10","Flow between positions, controlled"],
+      ["Burpee to Tuck Jump","3","8","Full burpee, tuck knees at top"]
+    ]},
+    Sat:{focus:"Cardio + Abs",tag:"Cardio",note:"Longer session. Go outside if you can — stairs, hill sprints, or a run.",ex:[
+      ["Run or Stair Sprints","1","30–40 min","Zone 2 jog or hotel stairs intervals"],
+      ["Ab Rollout (towel on floor)","3","10","Same motion as ab wheel"],
+      ["V-Ups","3","12","Reach hands to feet at top"],
+      ["Plank Hip Dips","3","20","Side-to-side, obliques"]
+    ]},
+    Sun:{focus:"Rest",tag:"Recovery",note:"rest"}
+  }},
+  2: { theme:"Intensity", sub:"Add reps, slow the tempo, or reduce rest time vs week 1 on every exercise.", days: {
+    Mon:{focus:"Push",tag:"Strength",note:"Same movements, more reps and a harder finisher. Slow the eccentric to 3 seconds.",ex:[
+      ["Push-Ups","4","Max (aim 20+)","3-second down, explode up"],
+      ["Pike Push-Ups","3","12","Added 2 reps"],
+      ["Diamond Push-Ups","4","12","Added a set"],
+      ["Archer Push-Ups","3","8/side","NEW: shift weight side to side"],
+      ["Tricep Dips (chair/bed)","4","15","Added a set"],
+      ["Shoulder Taps","3","30","More reps, same control"]
+    ]},
+    Tue:{focus:"Pull + Bi's",tag:"Strength",note:"More volume and a harder bicep finisher.",ex:[
+      ["Towel Row (door handle)","4","15","More reps"],
+      ["Reverse Push-Ups (under table)","4","12","Added a set"],
+      ["Doorframe Isometric Pull","3","40 sec","Longer hold"],
+      ["Towel Bicep Curl","4","12","Added a set"],
+      ["Superman Pulses","3","15","Hold peak and pulse, don't drop"],
+      ["Rear Delt Fly (towel)","4","15","Added a set"]
+    ]},
+    Wed:{focus:"Cardio + Abs",tag:"Cardio",note:"Reduce rest between sets to 30 seconds. More intensity, same movements.",ex:[
+      ["Jump Rope (invisible)","1","4 min","30 sec hard, 15 sec easy — intervals"],
+      ["Burpees","5","10","Added a set"],
+      ["Mountain Climbers","4","40 sec","Longer interval"],
+      ["Hollow Body Hold","4","35 sec","Longer hold"],
+      ["Leg Raises","4","15","Added a set"],
+      ["Bicycle Crunches","3","30","More reps"]
+    ]},
+    Thu:{focus:"Legs",tag:"Strength",note:"Add single-leg work and plyometrics for intensity.",ex:[
+      ["Bodyweight Squat","4","25","More reps"],
+      ["Bulgarian Split Squat","4","10/leg","Added a set vs wk1"],
+      ["Single-Leg Glute Bridge","3","15/leg","NEW: harder than two-leg"],
+      ["Wall Sit","3","60 sec","Longer hold"],
+      ["Single-Leg Calf Raise","3","20/leg","More reps"],
+      ["Jump Squats","4","12","Added a set"]
+    ]},
+    Fri:{focus:"Full Body",tag:"Strength",note:"Push through fatigue — this is your hardest full-body session yet.",ex:[
+      ["Decline Push-Ups","4","12","Added a set"],
+      ["Bulgarian Split Squat","4","10/leg","Added a set"],
+      ["Pike Push-Up to Push-Up","4","8","Added a set"],
+      ["180 Jump Squat","3","10","Explosive rotation at top"],
+      ["Plank to Downward Dog","4","12","More reps"],
+      ["Burpee to Tuck Jump","4","8","Added a set"]
+    ]},
+    Sat:{focus:"Cardio + Abs",tag:"Cardio",note:"Push the pace or distance vs week 1.",ex:[
+      ["Run or Stair Sprints","1","40–50 min","Slightly longer than wk1"],
+      ["Ab Rollout (towel on floor)","3","12","More reps"],
+      ["V-Ups","4","12","Added a set"],
+      ["Plank Hip Dips","3","30","More reps"]
+    ]},
+    Sun:{focus:"Rest",tag:"Recovery",note:"rest"}
+  }},
+  3: { theme:"Peak", sub:"Highest volume of the block. Minimal rest. You should feel and look noticeably leaner by end of week.", days: {
+    Mon:{focus:"Push",tag:"Strength",note:"Peak push volume. Superset diamond and wide push-ups with no rest between.",ex:[
+      ["Push-Ups","5","Max","5 sets — leave nothing"],
+      ["Pike Push-Ups","4","12",""],
+      ["Diamond Push-Ups","4","12","Superset with wide — no rest"],
+      ["Wide Push-Ups","4","12","Right after diamonds"],
+      ["Tricep Dips (chair/bed)","4","20","Peak reps"],
+      ["Shoulder Taps","4","30",""]
+    ]},
+    Tue:{focus:"Pull + Bi's",tag:"Strength",note:"Peak back and biceps volume.",ex:[
+      ["Towel Row (door handle)","5","15","5 sets"],
+      ["Reverse Push-Ups (under table)","4","15","More reps"],
+      ["Doorframe Isometric Pull","4","45 sec","Longest hold of the block"],
+      ["Towel Bicep Curl","4","15","Peak reps"],
+      ["Superman Hold","4","20","Hold 3 seconds at top"],
+      ["Rear Delt Fly (towel)","4","20",""]
+    ]},
+    Wed:{focus:"Cardio + Abs",tag:"Cardio",note:"Peak cardio intensity. Go outside if possible — stairs or sprint intervals.",ex:[
+      ["Sprint Intervals or Stair Sprints","1","20 min","30s all-out, 30s walk — repeat"],
+      ["Burpees","5","12","Peak volume"],
+      ["Mountain Climbers","4","45 sec",""],
+      ["Hollow Body Hold","4","40 sec",""],
+      ["Leg Raises","4","20",""],
+      ["Bicycle Crunches","4","30",""]
+    ]},
+    Thu:{focus:"Legs",tag:"Strength",note:"Final leg session of the block. Plyometrics after each strength set.",ex:[
+      ["Bodyweight Squat","5","25","5 sets"],
+      ["Bulgarian Split Squat","4","12/leg","More reps"],
+      ["Single-Leg Glute Bridge","4","15/leg",""],
+      ["Wall Sit","4","60 sec","Added a set"],
+      ["Single-Leg Calf Raise","4","20/leg",""],
+      ["Jump Squats","4","15","Peak plyometric volume"]
+    ]},
+    Fri:{focus:"Full Body",tag:"Strength",note:"Hardest workout of the entire 3 weeks. Go all out.",ex:[
+      ["Push-Up / Squat Superset","4","10+10","No rest between — straight into squat"],
+      ["Bulgarian Split Squat","4","12/leg",""],
+      ["Archer Push-Ups","4","8/side",""],
+      ["180 Jump Squat","4","10",""],
+      ["Plank to Downward Dog","4","15",""],
+      ["Burpee to Tuck Jump","5","10","Peak finisher"]
+    ]},
+    Sat:{focus:"Cardio + Abs",tag:"Cardio",note:"Longest, hardest session of the block. Finish the 3 weeks with everything you have.",ex:[
+      ["Run or Stair Sprints","1","50–60 min","Peak duration — go outside"],
+      ["Ab Rollout (towel on floor)","4","15","Peak volume"],
+      ["V-Ups","4","15",""],
+      ["Plank Hip Dips","4","30",""]
+    ]},
+    Sun:{focus:"Rest",tag:"Recovery",note:"rest"}
+  }}
+};
+
+const MEALS = [
+  {name:"Mid-Morning Shake",icon:"🥤",time:"~10–11am — easy while traveling",cals:300,items:[["Whey protein, 1.5 scoops (pack these)","35","5","2"],["Banana (grab from hotel)","1","27","0"],["Peanut butter packet, 1","4","3","8"],["Water","0","0","0"]]},
+  {name:"Lunch",icon:"🍗",time:"~1–2pm — restaurant or grab-and-go",cals:750,items:[["Grilled chicken or lean protein, 8oz","55","0","8"],["Rice, potato, or grain side","6","80","1"],["Salad or veg side","3","12","3"],["Olive oil or light dressing","0","4","14"]]},
+  {name:"Dinner",icon:"🥩",time:"~7–8pm",cals:900,items:[["Lean protein (fish, beef, chicken), 8oz","55","0","20"],["Starchy side (sweet potato, rice)","4","50","0"],["Vegetables, as much as you want","4","15","2"],["Greek yogurt or protein bar (dessert)","18","12","3"]]}
+];
+
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const TAG_COLOR = {Strength:"#f97316",Cardio:"#3b82f6",Recovery:"#10b981"};
+const STORAGE_KEY = "travel_ripped_v1";
+
+let state = { tab:"workout", week:1, day:"Mon", macros:{protein:0,carbs:0,fat:0}, logs:[] };
+
+function loadState() {
+  try { const d = JSON.parse(localStorage.getItem(STORAGE_KEY)); if(d){ state.macros=d.macros||state.macros; state.logs=d.logs||[]; } } catch{}
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({macros:state.macros,logs:state.logs})); } catch{}
+}
+loadState();
+const DAYMAP = {0:"Sun",1:"Mon",2:"Tue",3:"Wed",4:"Thu",5:"Fri",6:"Sat"};
+state.day = DAYMAP[new Date().getDay()];
+
+function render() {
+  renderNav();
+  const area = document.getElementById("scroll-area");
+  if(state.tab==="workout") area.innerHTML = renderWorkout();
+  else if(state.tab==="diet") area.innerHTML = renderDiet();
+  else area.innerHTML = renderProgress();
+  area.scrollTop = 0;
+}
+
+function renderNav() {
+  const tabs = [{id:"workout",icon:"🏋️",label:"Workouts"},{id:"diet",icon:"🥗",label:"Diet"},{id:"progress",icon:"📈",label:"Progress"}];
+  document.getElementById("bottom-nav").innerHTML = tabs.map(t=>`
+    <button class="nav-btn" onclick="switchTab('${t.id}')" style="color:${state.tab===t.id?'#f97316':'#475569'}">
+      <span class="nav-icon">${t.icon}</span>
+      <span class="nav-label" style="font-weight:${state.tab===t.id?700:400}">${t.label}</span>
+    </button>`).join('');
+}
+
+function renderWorkout() {
+  const wk = PROGRAM[state.week];
+  const dd = wk.days[state.day];
+  const isRest = dd.focus==="Rest";
+  const weekTabs = [1,2,3].map(w=>`
+    <button class="week-tab ${state.week===w?'active':''}" onclick="setWeek(${w})">
+      <div class="week-tab-num">Week ${w}</div>
+      <div class="week-tab-theme">${PROGRAM[w].theme}</div>
+    </button>`).join('');
+  const dayPills = DAYS.map(d=>`
+    <button class="day-pill ${state.day===d?'active':''}" onclick="setDay('${d}')">
+      <div class="day-pill-name">${d}</div>
+      <div class="day-pill-focus">${PROGRAM[state.week].days[d].focus.split(' ')[0]}</div>
+    </button>`).join('');
+  const tagColor = TAG_COLOR[dd.tag]||'#64748b';
+  const exRows = isRest ? '' : dd.ex.map(([name,sets,reps,note])=>`
+    <tr>
+      <td><span class="ex-name">${name}</span></td>
+      <td><span class="ex-sets">${sets}</span></td>
+      <td><span class="ex-reps">${reps}</span></td>
+      <td><span class="ex-note">${note}</span></td>
+    </tr>`).join('');
+  const tipBox = `<div class="tip-box">✈️ <strong style="color:#34d399">Travel tip:</strong> Pack 10–15 protein powder servings in a ziplock. Grab fruit from the hotel breakfast. You can hit your macros anywhere.</div>`;
+  const detail = isRest
+    ? `<div class="rest-day">🌙<br><br>Full rest day.<br>Sleep, protein, hydration — especially important while traveling.</div>`
+    : `<div class="workout-header">
+        <span class="workout-title">${dd.focus}</span>
+        <span class="tag-badge" style="background:${tagColor}22;color:${tagColor}">${dd.tag}</span>
+       </div>
+       <div class="workout-note">${dd.note}</div>
+       <table class="ex-table">
+         <thead><tr><th style="width:36%">Exercise</th><th style="width:13%">Sets</th><th style="width:16%">Reps</th><th>Notes</th></tr></thead>
+         <tbody>${exRows}</tbody>
+       </table>`;
+  return `
+    <div class="week-tabs">${weekTabs}</div>
+    <p style="font-size:12px;color:var(--text4);margin-bottom:12px;line-height:1.6">${wk.sub}</p>
+    <div class="day-pills">${dayPills}</div>
+    ${tipBox}
+    <div class="card">${detail}</div>`;
+}
+
+function renderDiet() {
+  const {protein,carbs,fat} = state.macros;
+  const kcal = protein*4 + carbs*4 + fat*9;
+  const rings = [
+    {label:"Protein",val:protein,max:130,color:"#3b82f6"},
+    {label:"Carbs",val:carbs,max:180,color:"#f97316"},
+    {label:"Fat",val:fat,max:60,color:"#a855f7"}
+  ];
+  const ringsSVG = rings.map(r=>{
+    const pct=Math.min(r.val/r.max,1), rad=28, circ=2*Math.PI*rad;
+    return `<div class="ring-wrap">
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r="${rad}" fill="none" stroke="#1e293b" stroke-width="6"/>
+        <circle cx="36" cy="36" r="${rad}" fill="none" stroke="${r.color}" stroke-width="6"
+          stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-pct)}"
+          stroke-linecap="round" transform="rotate(-90 36 36)"/>
+        <text x="36" y="40" text-anchor="middle" fill="#f1f5f9" font-size="13" font-weight="600">${r.val}g</text>
+      </svg>
+      <span class="ring-label">${r.label}</span>
+    </div>`;
+  }).join('');
+  const mealsHTML = MEALS.map(m=>`
+    <div class="card">
+      <div class="meal-header"><span class="meal-name">${m.icon} ${m.name}</span><span class="meal-cals">~${m.cals} kcal</span></div>
+      <div class="meal-time">${m.time}</div>
+      ${m.items.map(([name,p,c,f])=>`
+        <div class="meal-row">
+          <span class="meal-item">${name}</span>
+          <span class="meal-macros">${p}p·${c}c·${f}f</span>
+        </div>`).join('')}
+    </div>`).join('');
+  return `
+    <div class="card">
+      <div class="section-eyebrow">Today's macros</div>
+      <div class="macro-rings">
+        ${ringsSVG}
+        <div class="calorie-center">
+          <div class="calorie-num">${kcal}</div>
+          <div class="calorie-sub">/ 1,950 kcal</div>
+        </div>
+      </div>
+      <div class="macro-inputs">
+        <div class="input-wrap"><label>Protein (g)</label><input type="number" value="${protein}" min="0" max="300" inputmode="numeric" onchange="setMacro('protein',this.value)"></div>
+        <div class="input-wrap"><label>Carbs (g)</label><input type="number" value="${carbs}" min="0" max="400" inputmode="numeric" onchange="setMacro('carbs',this.value)"></div>
+        <div class="input-wrap"><label>Fat (g)</label><input type="number" value="${fat}" min="0" max="200" inputmode="numeric" onchange="setMacro('fat',this.value)"></div>
+      </div>
+      <button class="reset-btn" onclick="resetMacros()">Reset today</button>
+    </div>
+    <div class="info-box">✈️ <strong style="color:#fb923c">On the road:</strong> Prioritize protein first at every meal. When eating out, ask for grilled protein, double veg, sauce on the side. Hotel breakfast: eggs + fruit + skip the pastries.</div>
+    ${mealsHTML}`;
+}
+
+function renderProgress() {
+  const today = new Date().toISOString().slice(0,10);
+  const histHTML = state.logs.length===0
+    ? `<div class="empty-state">No entries yet — log your first weigh-in above.</div>`
+    : `<div class="section-eyebrow" style="margin-top:4px">History</div>`
+      + state.logs.map((entry,i)=>{
+          const prev = state.logs[i+1];
+          const diff = prev ? (parseFloat(entry.weight)-parseFloat(prev.weight)).toFixed(1) : null;
+          const diffColor = diff===null?'':parseFloat(diff)<0?'#10b981':parseFloat(diff)>0?'#ef4444':'#64748b';
+          return `<div class="log-entry">
+            <div>
+              <div class="log-weight">${entry.weight} lbs</div>
+              ${entry.note?`<div class="log-note">${entry.note}</div>`:''}
+            </div>
+            <div>
+              <div class="log-date">${entry.date}</div>
+              ${diff!==null?`<div class="log-diff" style="color:${diffColor}">${parseFloat(diff)>0?'+':''}${diff} lbs</div>`:''}
+            </div>
+          </div>`;
+        }).join('');
+  return `
+    <div class="card">
+      <div class="section-eyebrow">Log today</div>
+      <div class="progress-input-grid">
+        <div><div class="field-label">Date</div><input class="field-input" type="date" id="log-date" value="${today}"></div>
+        <div><div class="field-label">Weight (lbs)</div><input class="field-input" type="number" id="log-weight" placeholder="160" inputmode="decimal" step="0.1"></div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div class="field-label">Note (optional)</div>
+        <input class="field-input" type="text" id="log-note" placeholder="PRs, energy, location...">
+      </div>
+      <button class="save-btn" onclick="saveLog()">Save entry</button>
+    </div>
+    ${histHTML}`;
+}
+
+function switchTab(t){ state.tab=t; render(); }
+function setWeek(w){ state.week=w; render(); }
+function setDay(d){ state.day=d; render(); }
+function setMacro(key,val){ state.macros[key]=Math.max(0,parseInt(val)||0); saveState(); render(); }
+function resetMacros(){ state.macros={protein:0,carbs:0,fat:0}; saveState(); render(); }
+function saveLog(){
+  const date=document.getElementById('log-date').value;
+  const weight=document.getElementById('log-weight').value;
+  const note=document.getElementById('log-note').value;
+  if(!weight) return;
+  state.logs=[{id:Date.now(),date,weight,note},...state.logs].slice(0,60);
+  saveState(); render();
+}
+
+render();
+</script>
+</body>
+</html>
